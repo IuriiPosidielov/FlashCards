@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { StyleSheet, Text, View, TextInput, Button } from "react-native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface IFlashCard {
   text: string;
@@ -10,6 +11,21 @@ export default function FlashCard() {
   const [value, setValue] = useState<string>("");
   const [FlashCardList, setFlashCards] = useState<IFlashCard[]>([]);
   const [error, showError] = useState<Boolean>(false);
+  useEffect(() => {
+    AsyncStorage.setItem("FlashCards", JSON.stringify(FlashCardList));
+  }, [FlashCardList])
+
+  useEffect( () => {
+    const restoreState = async () => {
+      try {
+        const savedStateString = await AsyncStorage.getItem("FlashCards");
+        const state = savedStateString ? JSON.parse(savedStateString) : [];
+        setFlashCards(state);
+      } finally {
+      }
+    };
+    restoreState();
+  }, []);
 
   const handleSubmit = (): void => {
     if (value.trim())
@@ -29,6 +45,7 @@ export default function FlashCard() {
     newFlashCardList[index].completed = !newFlashCardList[index].completed;
     setFlashCards(newFlashCardList);
   };
+
 
   return (
     <View style={styles.container}>
