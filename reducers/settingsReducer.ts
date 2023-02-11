@@ -7,8 +7,8 @@ export type InitialState = {
 }
 
 const initialState: InitialState = {
-    fromLanguage: "pl",
-    toLanguage: "en",
+    fromLanguage: "en",
+    toLanguage: "pl",
 };
 
 const settingsSlice = createSlice({
