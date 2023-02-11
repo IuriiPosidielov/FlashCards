@@ -1,9 +1,8 @@
 import { useDispatch, useSelector } from 'react-redux'
-import React, { useState, useEffect } from "react";
-import { StyleSheet, Text, View, TextInput, Button, Image,  } from "react-native";
+import React, { useState } from "react";
+import { StyleSheet, Text, View  } from "react-native";
 import  { setFromLanguage, setToLanguage } from '../reducers/settingsReducer'
 import DropDownPicker from 'react-native-dropdown-picker'
-import { useFocusEffect } from '@react-navigation/native';
 import { RootState } from '../stores/configureStores'
 
 export default function Settings() {
@@ -23,13 +22,6 @@ export default function Settings() {
         {label: 'German', value: 'de'},
         {label: 'France', value: 'fr'},
     ]);
-    
-    //useFocusEffect(
-    //  React.useCallback(() => {
-    //    setValueTo(toLanguage);
-    //    setValueFrom(fromLanguage);
-    //  }, []),
-    //);
 
     const changeValueFrom = () => {
       dispatch(setFromLanguage(valueFrom));
@@ -77,10 +69,11 @@ export default function Settings() {
       flexDirection: "row",
     },
     inputWrapper: {
-      width: "200",
+      width: 150,
       flexDirection: "row",
       justifyContent: "space-between",
-      marginBottom: 20
+      marginBottom: 20,
+      marginTop: 10
     },
     dropdown: {
       width: "50%",
