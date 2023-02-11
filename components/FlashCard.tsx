@@ -1,58 +1,42 @@
-import React, { useState, useEffect } from "react";
-import { StyleSheet, Text, View, TextInput, Button } from "react-native";
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useState, useEffect, FC } from "react";
+import { StyleSheet, Text, View, TextInput, Button, Image } from "react-native";
+import Translate from './API/Translate';
+import SearchImage from './API/SearchImage';
+import { useDispatch, useSelector } from 'react-redux'
+import { RootState } from '../stores/configureStores'
+import  { cardAdded, cardToggled, cardRemoved } from '../reducers/cardsReducer'
+import { useNavigation } from '@react-navigation/native';
 
-interface IFlashCard {
-  text: string;
-  completed: boolean;
-}
-
-export default function FlashCard() {
+export default function flashCard() {
   const [value, setValue] = useState<string>("");
-  const [FlashCardList, setFlashCards] = useState<IFlashCard[]>([]);
   const [error, showError] = useState<Boolean>(false);
-  useEffect(() => {
-    AsyncStorage.setItem("FlashCards", JSON.stringify(FlashCardList));
-  }, [FlashCardList])
+  const flashCardList = useSelector(( state:RootState ) => state.cards.items);
+  const fromLanguage = useSelector(( state:RootState ) => state.settings.fromLanguage);
+  const toLanguage = useSelector(( state:RootState ) => state.settings.toLanguage);
+  
+  const dispatch = useDispatch();
+  type Nav = {
+    navigate: (value: string, object : any) => void;
+  }
+  const { navigate } = useNavigation<Nav>()
 
-  useEffect( () => {
-    const restoreState = async () => {
-      try {
-        const savedStateString = await AsyncStorage.getItem("FlashCards");
-        const state = savedStateString ? JSON.parse(savedStateString) : [];
-        setFlashCards(state);
-      } finally {
+  
+  const handleSubmit = async () => {
+      let picture = await SearchImage(value);
+      let translation = await Translate(value, fromLanguage, toLanguage);
+      if (value.trim()) {
+        console.log(value);
+        dispatch(cardAdded({ origin: value, translation: translation, picture: picture, completed: false }))
       }
-    };
-    restoreState();
-  }, []);
-
-  const handleSubmit = (): void => {
-    if (value.trim())
-      setFlashCards([...FlashCardList, { text: value, completed: false }]);
-    else showError(true);
-    setValue("");
+      else
+        showError(true);
   };
-
-  const removeItem = (index: number): void => {
-    const newFlashCardList = [...FlashCardList];
-    newFlashCardList.splice(index, 1);
-    setFlashCards(newFlashCardList);
-  };
-
-  const toggleComplete = (index: number): void => {
-    const newFlashCardList = [...FlashCardList];
-    newFlashCardList[index].completed = !newFlashCardList[index].completed;
-    setFlashCards(newFlashCardList);
-  };
-
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>FlashCard List</Text>
       <View style={styles.inputWrapper}>
         <TextInput
-          placeholder="Please enter your FlashCard..."
+          placeholder="Please enter your text"
           value={value}
           onChangeText={e => {
             setValue(e);
@@ -60,33 +44,40 @@ export default function FlashCard() {
           }}
           style={styles.inputBox}
         />
-        <Button title="Add FlashCard" onPress={handleSubmit} />
+        <Button title="Add flashCard" onPress={ () => { handleSubmit();} } />
       </View>
       {error && (
         <Text style={styles.error}>Error: Input field is empty...</Text>
       )}
-      <Text style={styles.subtitle}>Your FlashCards :</Text>
-      {FlashCardList.length === 0 && <Text>No to do FlashCard available</Text>}
-      {FlashCardList.map((FlashCard: IFlashCard, index: number) => (
-        <View style={styles.listItem} key={`${index}_${FlashCard.text}`}>
+      <Text style={styles.subtitle}>Your flashCards :</Text>
+      {flashCardList.length === 0 && <Text>No flashCard available</Text>}
+      {flashCardList.map((flashCard, index: number) => (
+        <View style={styles.listItem} key={`${index}_${flashCard.origin}`}>
           <Text
             style={[
-              styles.FlashCard,
-              { textDecorationLine: FlashCard.completed ? "line-through" : "none" }
+              styles.flashCard,
+              { textDecorationLine: flashCard.completed ? "line-through" : "none" }
             ]}
           >
-            {FlashCard.text}
+            {flashCard.origin} ({flashCard.translation})
+            { flashCard.picture !== "" && <Image style={styles.tinyLogo} resizeMode="center" source={{ uri: flashCard.picture }} /> }
           </Text>
           <Button
-            title={FlashCard.completed ? "Completed" : "Complete"}
-            onPress={() => toggleComplete(index)}
+            title={flashCard.completed ? "Completed" : "Complete"}
+            onPress={() => dispatch(cardToggled(flashCard.origin)) }
           />
           <Button
             title="X"
             onPress={() => {
-              removeItem(index);
+              dispatch(cardRemoved(flashCard.origin))
             }}
             color="crimson"
+          />
+          <Button
+            title="Details"
+            onPress={() => {
+              navigate("Modal", {index: index, picture:flashCard.picture, origin:flashCard.origin, translation: flashCard.translation});
+            }}
           />
         </View>
       ))}
@@ -106,7 +97,7 @@ const styles = StyleSheet.create({
     marginBottom: 20
   },
   inputBox: {
-    width: 200,
+    width: 150,
     borderColor: "purple",
     borderRadius: 8,
     borderWidth: 2,
@@ -133,10 +124,12 @@ const styles = StyleSheet.create({
   addButton: {
     alignItems: "flex-end"
   },
-  FlashCard: {
-    width: 200
+  flashCard: {
+    width: "80%"
   },
   error: {
     color: "red"
-  }
+  },
+  tinyLogo: {
+  },
 });
