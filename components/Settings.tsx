@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 import { StyleSheet, Text, View, TextInput, Button, Image,  } from "react-native";
 import  { setFromLanguage, setToLanguage } from '../reducers/settingsReducer'
 import DropDownPicker from 'react-native-dropdown-picker'
+import { useFocusEffect } from '@react-navigation/native';
+import { RootState } from '../stores/configureStores'
 
 export default function Settings() {
     const dispatch = useDispatch();
@@ -10,8 +12,11 @@ export default function Settings() {
     const [openFrom, setOpenFrom] = useState(false);
     const [openTo, setOpenTo] = useState(false);
     
-    const [valueFrom, setValueFrom] = useState("en");
-    const [valueTo, setValueTo] = useState("pl");
+    const fromLanguage = useSelector(( state:RootState ) => state.settings.fromLanguage);
+    const toLanguage = useSelector(( state:RootState ) => state.settings.toLanguage);
+    
+    const [valueFrom, setValueFrom] = useState(fromLanguage);
+    const [valueTo, setValueTo] = useState(toLanguage);
     const [items, setItems] = useState([
         {label: 'English', value: 'en'},
         {label: 'Poland', value: 'pl'},
@@ -19,6 +24,13 @@ export default function Settings() {
         {label: 'France', value: 'fr'},
     ]);
     
+    //useFocusEffect(
+    //  React.useCallback(() => {
+    //    setValueTo(toLanguage);
+    //    setValueFrom(fromLanguage);
+    //  }, []),
+    //);
+
     const changeValueFrom = () => {
       dispatch(setFromLanguage(valueFrom));
     };
