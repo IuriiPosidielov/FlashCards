@@ -1,5 +1,5 @@
-import React, { useState, useEffect, FC } from "react";
-import { StyleSheet, Text, View, TextInput, Button, Image } from "react-native";
+import React, { useState } from "react";
+import { StyleSheet, Text, View, ScrollView, TextInput, Button, Image } from "react-native";
 import Translate from './API/Translate';
 import SearchImage from './API/SearchImage';
 import { useDispatch, useSelector } from 'react-redux'
@@ -22,9 +22,11 @@ export default function flashCard() {
 
   
   const handleSubmit = async () => {
-    if (value === "") // simple validation
+    if (value === "")  {
+      // simple validation
       showError(true);
-
+      return;
+    }
     let picture = await SearchImage(value);
     let translation = await Translate(value, fromLanguage, toLanguage);
       
@@ -52,6 +54,7 @@ export default function flashCard() {
       )}
       <Text style={styles.subtitle}>Your flashCards :</Text>
       {flashCardList.length === 0 && <Text>No flashCard available</Text>}
+      <ScrollView style={{flex:1}} contentContainerStyle={{ flexGrow: 1 }}>  
       {flashCardList.map((flashCard, index: number) => (
         <View style={styles.listItem} key={`${index}_${flashCard.origin}`}>
           <Text
@@ -82,12 +85,14 @@ export default function flashCard() {
           />
         </View>
       ))}
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     padding: 35,
     alignItems: "center"
   },
