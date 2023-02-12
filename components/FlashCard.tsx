@@ -22,14 +22,15 @@ export default function flashCard() {
 
   
   const handleSubmit = async () => {
-      let picture = await SearchImage(value);
-      let translation = await Translate(value, fromLanguage, toLanguage);
-      if (value.trim()) {
-        console.log(value);
-        dispatch(cardAdded({ origin: value, translation: translation, picture: picture, completed: false }))
-      }
-      else
-        showError(true);
+    if (value === "") // simple validation
+      showError(true);
+
+    let picture = await SearchImage(value);
+    let translation = await Translate(value, fromLanguage, toLanguage);
+      
+    if (value.trim()) {
+      dispatch(cardAdded({ origin: value, translation: translation, picture: picture, completed: false }))
+    }
   };
 
   return (
